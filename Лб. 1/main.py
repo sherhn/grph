@@ -13,6 +13,16 @@ if filepath:
 
 
     result = Image.fromarray(array)
-    savepath = filedialog.asksaveasfilename()
+    savepath = filedialog.asksaveasfilename(
+        defaultextension=".pbm",
+        filetypes=[("PBM файл", "*.pbm")]
+    )
     if savepath:
-        result.save(savepath)
+        with open(savepath, "w") as f:
+            f.write("P3\n")
+            f.write(f"{array.shape[1]} {array.shape[0]}\n")
+            f.write("255\n")
+            for row in array:
+                for pixel in row:
+                    f.write(f"{pixel[0]} {pixel[1]} {pixel[2]} ")
+                f.write("\n")
