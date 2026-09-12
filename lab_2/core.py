@@ -4,6 +4,7 @@ import math
 WHITE = (255, 255, 255)
 GRAPH = (255, 0, 0)
 AXIS = (0, 0, 0)
+CONTOUR = (255, 127, 127)
 
 
 def create_image(width, height, color=WHITE):
@@ -27,6 +28,17 @@ def inside_equilateral_triangle(px, py, x0, y0, h):
     return abs(px - x0) <= (py - y0) / math.sqrt(3)
 
 
+def draw_line(img, x0, y0, x1, y1, color):
+    width, height = img.size
+    steps = max(abs(x1 - x0), abs(y1 - y0), 1)
+    for i in range(steps + 1):
+        t = i / steps
+        x = round(x0 + (x1 - x0) * t)
+        y = round(y0 + (y1 - y0) * t)
+        if 0 <= x < width and 0 <= y < height:
+            img.putpixel((x, y), color)
+
+
 def copy_fragment(dest_img, src_img, h):
 
     width = min(dest_img.width, src_img.width)
@@ -38,6 +50,13 @@ def copy_fragment(dest_img, src_img, h):
 
     # левый нижний угол (основание) исходного треугольника
     left_x, left_y = bottom_left_vertex(x_0, y_0, h)
+    # правый нижний угол (основание) исходного треугольника
+    right_x, right_y = x_0 + (x_0 - left_x), left_y
+
+    # обводим контуром выбранный фрагмент на исходном изображении
+    draw_line(src_img, x_0, y_0, left_x, left_y, CONTOUR)
+    draw_line(src_img, x_0, y_0, right_x, right_y, CONTOUR)
+    draw_line(src_img, left_x, left_y, right_x, right_y, CONTOUR)
 
     # куда переносим этот угол на новом изображении: левый нижний угол картинки
     margin = 10
@@ -62,33 +81,24 @@ def draw_axes(img):
     width, height = img.size
     cy = height // 2
 
-    def line(x0, y0, x1, y1):
-        steps = max(abs(x1 - x0), abs(y1 - y0), 1)
-        for i in range(steps + 1):
-            t = i / steps
-            x = round(x0 + (x1 - x0) * t)
-            y = round(y0 + (y1 - y0) * t)
-            if 0 <= x < width and 0 <= y < height:
-                img.putpixel((x, y), AXIS)
-
     # ось OY (вертикальная) со стрелкой вверх
-    line(10, height - 10, 10, 10)
-    line(5, 20, 10, 10)
-    line(15, 20, 10, 10)
+    draw_line(img, 10, height - 10, 10, 10, AXIS)
+    draw_line(img, 5, 20, 10, 10, AXIS)
+    draw_line(img, 15, 20, 10, 10, AXIS)
 
     # ось OX (горизонтальная) со стрелкой вправо
-    line(8, cy, width - 10, cy)
-    line(width - 20, cy - 5, width - 10, cy)
-    line(width - 20, cy + 5, width - 10, cy)
+    draw_line(img, 8, cy, width - 10, cy, AXIS)
+    draw_line(img, width - 20, cy - 5, width - 10, cy, AXIS)
+    draw_line(img, width - 20, cy + 5, width - 10, cy, AXIS)
 
     # деления на OY с шагом 10 пикселей
     for i in range((height - 40) // 20 + 1):
-        line(10, cy + i * 10, 8, cy + i * 10)
-        line(10, cy - i * 10, 8, cy - i * 10)
+        draw_line(img, 10, cy + i * 10, 8, cy + i * 10, AXIS)
+        draw_line(img, 10, cy - i * 10, 8, cy - i * 10, AXIS)
 
     # деления на OX с шагом 10 пикселей
     for i in range((width - 40) // 10 + 1):
-        line((i + 1) * 10, cy, (i + 1) * 10, cy + 2)
+        draw_line(img, (i + 1) * 10, cy, (i + 1) * 10, cy + 2, AXIS)
 
     # подписи 0, x, y
     draw = ImageDraw.Draw(img)
@@ -114,16 +124,8 @@ def draw_function(img):
 
     for x in range(2, width - 10):
         xi, yi = point(x)
-
         # соединяем предыдущую точку графика с текущей отрезком
-        steps = max(abs(xi - prev_x), abs(yi - prev_y), 1)
-        for i in range(steps + 1):
-            t = i / steps
-            px = round(prev_x + (xi - prev_x) * t)
-            py = round(prev_y + (yi - prev_y) * t)
-            if 0 <= px < width and 0 <= py < height:
-                img.putpixel((px, py), GRAPH)
-
+        draw_line(img, prev_x, prev_y, xi, yi, GRAPH)
         prev_x, prev_y = xi, yi
 
     return img
