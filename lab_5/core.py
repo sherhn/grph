@@ -50,4 +50,5 @@ def overlay_blend(img1, img2):
 
 
 def save_image(img, path):
-    img.save(path)
+    """Сохраняет изображение в файл на диске в формате Netpbm (PPM)."""
+    img.save(path, format="PPM")

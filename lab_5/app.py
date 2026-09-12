@@ -60,8 +60,8 @@ def on_save_transform():
         messagebox.showerror("Ошибка", "Нечего сохранять")
         return
     path = filedialog.asksaveasfilename(
-        defaultextension=".png",
-        filetypes=[("PNG файл", "*.png"), ("BMP файл", "*.bmp")],
+        defaultextension=".ppm",
+        filetypes=[("PPM файл", "*.ppm")],
     )
     if path:
         core.save_image(transform_result, path)
@@ -72,8 +72,8 @@ def on_save_overlay():
         messagebox.showerror("Ошибка", "Нечего сохранять")
         return
     path = filedialog.asksaveasfilename(
-        defaultextension=".png",
-        filetypes=[("PNG файл", "*.png"), ("BMP файл", "*.bmp")],
+        defaultextension=".ppm",
+        filetypes=[("PPM файл", "*.ppm")],
     )
     if path:
         core.save_image(overlay_result, path)
