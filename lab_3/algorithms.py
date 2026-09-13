@@ -1,5 +1,7 @@
 import math
-from typing import List, Tuple, Dict, Any
+import re
+import xml.etree.ElementTree as ET
+from typing import List, Tuple, Dict, Any, Optional
 
 COLOR_CDA = (127, 127, 255)
 COLOR_BREZF = (255, 127, 127)
@@ -178,3 +180,85 @@ def calculate_triangle_bisectors(
             ((cx, cy), (lcx, lcy), "C-L_C"),
         ]
     }
+
+
+def load_triangle_from_svg(filepath: str, target_size: int = 60) -> Optional[List[Tuple[float, float]]]:
+    try:
+        tree = ET.parse(filepath)
+        root = tree.getroot()
+    except Exception:
+        return None
+
+    raw_points: List[Tuple[float, float]] = []
+
+    for elem in root.iter():
+        tag = elem.tag.split("}")[-1].lower()
+
+        if tag == "polygon" and "points" in elem.attrib:
+            nums = [float(x) for x in re.findall(r"[-+]?(?:\d*\.\d+|\d+)", elem.attrib["points"])]
+            if len(nums) >= 6:
+                raw_points = [(nums[i], nums[i + 1]) for i in range(0, 6, 2)]
+                break
+
+        elif tag == "polyline" and "points" in elem.attrib:
+            nums = [float(x) for x in re.findall(r"[-+]?(?:\d*\.\d+|\d+)", elem.attrib["points"])]
+            if len(nums) >= 6:
+                pts = [(nums[i], nums[i + 1]) for i in range(0, len(nums) - 1, 2)]
+                unique_pts: List[Tuple[float, float]] = []
+                for p in pts:
+                    if not unique_pts or (abs(p[0] - unique_pts[-1][0]) > 1e-4 or abs(p[1] - unique_pts[-1][1]) > 1e-4):
+                        unique_pts.append(p)
+                if len(unique_pts) >= 3:
+                    raw_points = unique_pts[:3]
+                    break
+
+        elif tag == "path" and "d" in elem.attrib:
+            nums = [float(x) for x in re.findall(r"[-+]?(?:\d*\.\d+|\d+)", elem.attrib["d"])]
+            if len(nums) >= 6:
+                raw_points = [(nums[0], nums[1]), (nums[2], nums[3]), (nums[4], nums[5])]
+                break
+
+    if len(raw_points) < 3:
+        lines = []
+        for elem in root.iter():
+            if elem.tag.split("}")[-1].lower() == "line":
+                attrs = elem.attrib
+                if all(k in attrs for k in ("x1", "y1", "x2", "y2")):
+                    p1 = (float(attrs["x1"]), float(attrs["y1"]))
+                    p2 = (float(attrs["x2"]), float(attrs["y2"]))
+                    lines.append((p1, p2))
+        if len(lines) >= 3:
+            pts_set: List[Tuple[float, float]] = []
+            for p1, p2 in lines[:3]:
+                for pt in (p1, p2):
+                    if not any(math.hypot(pt[0] - ep[0], pt[1] - ep[1]) < 1e-3 for ep in pts_set):
+                        pts_set.append(pt)
+            if len(pts_set) >= 3:
+                raw_points = pts_set[:3]
+
+    if len(raw_points) < 3:
+        return None
+
+    xs = [p[0] for p in raw_points]
+    ys = [p[1] for p in raw_points]
+    min_x, max_x = min(xs), max(xs)
+    min_y, max_y = min(ys), max(ys)
+    w = max_x - min_x
+    h = max_y - min_y
+
+    margin = 6.0
+    usable = target_size - 2 * margin
+
+    if max_x > target_size - margin or max_y > target_size - margin or min_x < margin or min_y < margin or max(w, h) < 10:
+        scale = usable / max(w, h, 1e-5)
+        offset_x = margin + (usable - w * scale) / 2.0
+        offset_y = margin + (usable - h * scale) / 2.0
+        return [
+            (
+                round(offset_x + (p[0] - min_x) * scale, 1),
+                round(offset_y + (p[1] - min_y) * scale, 1)
+            )
+            for p in raw_points
+        ]
+
+    return [(round(p[0], 1), round(p[1], 1)) for p in raw_points]
