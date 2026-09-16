@@ -77,8 +77,8 @@ def on_save():
         messagebox.showerror("Ошибка", "Нечего сохранять")
         return
     path = filedialog.asksaveasfilename(
-        defaultextension=".ppm",
-        filetypes=[("PPM файл", "*.ppm")],
+        defaultextension=".pbm",
+        filetypes=[("PPM файл", "*.pbm")],
     )
     if path:
         core.save_image(new_image, path)
