@@ -45,7 +45,7 @@ def on_transform():
     move_x = int(move_x_entry.get())
     move_y = int(move_y_entry.get())
     transform_result = core.move(image1, move_x, move_y)
-    mirror_result = core.mirror(transform_result)
+    mirror_result = core.mirror(image1)
     refresh_canvas(canvas2, transform_result)
     refresh_canvas(canvas3, mirror_result)
 
