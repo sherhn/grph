@@ -5,9 +5,10 @@ from PIL import ImageTk
 import core
 
 image1 = None
-image2 = None
 transform_result = None
-overlay_result = None
+mirror_result = None
+undo_transform_result = None
+undo_mirror_result = None
 
 
 def refresh_canvas(canvas, img):
@@ -28,17 +29,8 @@ def on_open1():
     refresh_canvas(canvas1, image1)
 
 
-def on_open2():
-    global image2
-    path = filedialog.askopenfilename()
-    if not path:
-        return
-    image2 = core.load_image(path)
-    refresh_canvas(canvas2, image2)
-
-
 def on_transform():
-    global transform_result
+    global transform_result, mirror_result
     if image1 is None:
         messagebox.showerror("Ошибка", "Сначала откройте изображение")
         return
@@ -50,13 +42,21 @@ def on_transform():
     refresh_canvas(canvas3, mirror_result)
 
 
-def on_overlay():
-    global overlay_result
-    if image1 is None or image2 is None:
-        messagebox.showerror("Ошибка", "Сначала откройте оба изображения")
+def on_undo():
+    global transform_result, mirror_result, undo_transform_result, undo_mirror_result
+    if image1 is None:
+        messagebox.showerror("Ошибка", "Сначала откройте изображение")
         return
-    overlay_result = core.overlay_blend(image1, image2)
-    refresh_canvas(canvas4, overlay_result)
+    move_x = int(move_x_entry.get())
+    move_y = int(move_y_entry.get())
+    #undo_transform_result = core.move(transform_result, -move_x, -move_y)
+    undo_mirror_result = core.mirror(mirror_result)
+    #refresh_canvas(canvas4, undo_transform_result)
+    refresh_canvas(canvas5, undo_mirror_result)
+
+
+def on_overlay():
+    pass
 
 
 def on_save_transform():
@@ -72,15 +72,7 @@ def on_save_transform():
 
 
 def on_save_overlay():
-    if overlay_result is None:
-        messagebox.showerror("Ошибка", "Нечего сохранять")
-        return
-    path = filedialog.asksaveasfilename(
-        defaultextension=".ppm",
-        filetypes=[("PPM файл", "*.ppm")],
-    )
-    if path:
-        core.save_image(overlay_result, path)
+    pass
 
 
 root = tk.Tk()
@@ -89,9 +81,9 @@ root.title("Лабораторная работа №5")
 buttons = tk.Frame(root)
 buttons.pack(side="top", fill="x", padx=5, pady=5)
 
-tk.Button(buttons, text="Открыть 1", command=on_open1).grid(row=0, column=0, padx=2)
-tk.Button(buttons, text="Открыть 2", command=on_open2).grid(row=0, column=1, padx=2)
-tk.Button(buttons, text="Преобразовать", command=on_transform).grid(row=0, column=2, padx=2)
+tk.Button(buttons, text="Открыть", command=on_open1).grid(row=0, column=0, padx=2)
+tk.Button(buttons, text="Преобразовать", command=on_transform).grid(row=0, column=1, padx=2)
+tk.Button(buttons, text="Преобразовать обратно", command=on_undo).grid(row=0, column=2, padx=2)
 tk.Button(buttons, text="Наложить", command=on_overlay).grid(row=0, column=3, padx=2)
 tk.Button(buttons, text="Сохранить результат 1", command=on_save_transform).grid(row=0, column=4, padx=2)
 tk.Button(buttons, text="Сохранить результат 2", command=on_save_overlay).grid(row=0, column=5, padx=2)
