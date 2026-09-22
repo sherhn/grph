@@ -55,28 +55,44 @@ def on_overlay():
     refresh_canvas(canvas4, overlay_result)
 
 
+def save_result_image(img):
+    path = filedialog.asksaveasfilename(
+        title="Сохранить рисунок в файл",
+        defaultextension=".pbm",
+        filetypes=[
+            ("PBM Image", "*.pbm"),
+            ("PNG Image", "*.png"),
+            ("BMP Image", "*.bmp"),
+            ("JPEG Image", "*.jpg"),
+            ("All Files", "*.*"),
+        ],
+    )
+    if not path:
+        return
+    try:
+        if path.lower().endswith(".pbm"):
+            img.convert("RGB").save(path, format="PPM")
+        elif path.lower().endswith(".jpg") or path.lower().endswith(".jpeg"):
+            img.convert("RGB").save(path)
+        else:
+            img.save(path)
+        messagebox.showinfo("Успех", f"Изображение успешно сохранено в:\n{path}")
+    except Exception as e:
+        messagebox.showerror("Ошибка сохранения", f"Не удалось сохранить файл:\n{str(e)}")
+
+
 def on_save_transform():
     if transform_result is None:
         messagebox.showerror("Ошибка", "Нечего сохранять")
         return
-    path = filedialog.asksaveasfilename(
-        defaultextension=".pbm",
-        filetypes=[("PPM файл", "*.pbm")],
-    )
-    if path:
-        core.save_image(transform_result, path)
+    save_result_image(transform_result)
 
 
 def on_save_overlay():
     if overlay_result is None:
         messagebox.showerror("Ошибка", "Нечего сохранять")
         return
-    path = filedialog.asksaveasfilename(
-        defaultextension=".pbm",
-        filetypes=[("PPM файл", "*.pbm")],
-    )
-    if path:
-        core.save_image(overlay_result, path)
+    save_result_image(overlay_result)
 
 
 root = tk.Tk()

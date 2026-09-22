@@ -77,11 +77,28 @@ def on_save():
         messagebox.showerror("Ошибка", "Нечего сохранять")
         return
     path = filedialog.asksaveasfilename(
+        title="Сохранить рисунок в файл",
         defaultextension=".pbm",
-        filetypes=[("PPM файл", "*.pbm")],
+        filetypes=[
+            ("PBM Image", "*.pbm"),
+            ("PNG Image", "*.png"),
+            ("BMP Image", "*.bmp"),
+            ("JPEG Image", "*.jpg"),
+            ("All Files", "*.*"),
+        ],
     )
-    if path:
-        core.save_image(new_image, path)
+    if not path:
+        return
+    try:
+        if path.lower().endswith(".pbm"):
+            new_image.convert("RGB").save(path, format="PPM")
+        elif path.lower().endswith(".jpg") or path.lower().endswith(".jpeg"):
+            new_image.convert("RGB").save(path)
+        else:
+            new_image.save(path)
+        messagebox.showinfo("Успех", f"Изображение успешно сохранено в:\n{path}")
+    except Exception as e:
+        messagebox.showerror("Ошибка сохранения", f"Не удалось сохранить файл:\n{str(e)}")
 
 
 root = tk.Tk()
