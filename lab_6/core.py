@@ -35,5 +35,20 @@ def undo_move(img, move_x = 0, move_y = 0):
     pass
 
 
+def function_transform(img):
+    # i = x ** 2 / (1 + x)
+    # j = y
+    # x = (i + sqrt(i ** 2 + 4 * i)) / 2 (обратная функция)
+
+    new_img = Image.new("RGB", img.size, (240,240,240))
+
+    for i in range(img.width):
+        x = round(min(img.width - 1, max(0, (i + math.sqrt(i ** 2 + 4 * i)) / 2)))
+        for y in range(img.height):
+            new_img.putpixel((i, y), (img.getpixel((x, y))))
+
+    return new_img
+
+
 def save_image(img, path):
     img.save(path, format="PPM")
