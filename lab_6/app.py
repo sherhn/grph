@@ -46,13 +46,13 @@ def on_transform():
 def on_undo():
     global transform_result, mirror_result, undo_transform_result, undo_mirror_result
     if transform_result is None and mirror_result is None:
-        messagebox.showerror("Ошибка", "Сначала откройте изображение")
+        messagebox.showerror("Ошибка", "Сначала преобразуйте изображения")
         return
     move_x = int(move_x_entry.get())
     move_y = int(move_y_entry.get())
-    #undo_transform_result = core.move(transform_result, -move_x, -move_y)
+    undo_transform_result = core.move(transform_result, -move_x, -move_y)
     undo_mirror_result = core.mirror(mirror_result)
-    #refresh_canvas(canvas4, undo_transform_result)
+    refresh_canvas(canvas4, undo_transform_result)
     refresh_canvas(canvas5, undo_mirror_result)
 
 
