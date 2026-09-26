@@ -29,10 +29,6 @@ def mirror(img):
     return new_img
 
 
-def undo_move(img, move_x = 0, move_y = 0):
-    pass
-
-
 def function_transform(img):
     # i = x ** 2 / (1 + x)
     # j = y
