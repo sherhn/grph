@@ -1,6 +1,7 @@
-﻿.vs/
+.vs/
 bin/
 obj/
 *.user
 *.suo
 .idea
+AGENTS.md
